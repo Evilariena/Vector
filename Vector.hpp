@@ -17,30 +17,37 @@ public:
     using iterator = RandomAccessIterator<T>;
     using const_iterator = const RandomAccessIterator<T>;
     using reverse_iterator = std::reverse_iterator<iterator>;
-    using const_reverse_iterator = 	std::reverse_iterator<const_iterator>;
+    using const_reverse_iterator = std::reverse_iterator<const_iterator>;
     
     Vector():allocator(allocator){}
     explicit Vector(const Allocator& allocator):allocator(allocator){}
 
-    T& operator[](const int& position);
+    T& operator[](size_type position);
+    const T& operator[](size_type position) const;
     size_type size() const;
-    int capacity();
+    size_type capacity();
     void push_back(T element);
     template <class... Args>
     void emplace_back(Args&&... args);
     
 private:    
     void resize();
-    void resize(int size);
+    void resize(size_type size);
 
     T* elements;
-    int numberOfElements = 0;
-    int actualCapacity = 0;
+    size_type numberOfElements = 0;
+    size_type actualCapacity = 0;
     const Allocator& allocator;
 };
 
 template<class T, class Allocator>
-T& Vector<T, Allocator>::operator[](const int& position)
+T& Vector<T, Allocator>::operator[](size_type position)
+{
+    return elements[position];
+}
+
+template<class T, class Allocator>
+const T& Vector<T, Allocator>::operator[](size_type position) const
 {
     return elements[position];
 }
@@ -63,9 +70,9 @@ void Vector<T, Allocator>::resize()
 }
 
 template<class T, class Allocator>
-void Vector<T, Allocator>::resize(int size)
+void Vector<T, Allocator>::resize(size_type size)
 {
-    int newCapacity = 2 * actualCapacity;
+    size_type newCapacity = 2 * actualCapacity;
     T* biggerArray = new T[newCapacity];
     copy(elements, elements + numberOfElements, biggerArray);
     elements = biggerArray;
@@ -73,7 +80,7 @@ void Vector<T, Allocator>::resize(int size)
 }
 
 template<class T, class Allocator>
-int Vector<T, Allocator>::capacity()
+typename Vector<T, Allocator>::size_type Vector<T, Allocator>::capacity()
 {
     return actualCapacity;
 }
