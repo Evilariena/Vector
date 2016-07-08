@@ -1,4 +1,5 @@
 #include <gtest/gtest.h>
+#include <AllocatorMock.h>
 #include "Vector.hpp"
 
 int main(int ac, char* av[])
@@ -21,5 +22,11 @@ TEST(ObjectCostruction, defaultConstructor)
 
 TEST(ObjectCostruction, defaultConstructorWithAllocator)
 {
-    
+    Vector<int, Allocator<int>> vectorWithAllocator(Allocator<int>());
+}
+
+TEST(ObjectCostruction, fillExplicitConstructor)
+{
+    int numberOfElements = 10;
+    //Vector<bool> vectorConstructedWithNumberOfElements(numberOfElements);
 }

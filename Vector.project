@@ -6,7 +6,10 @@
     <File Name="Vector.hpp"/>
     <VirtualDirectory Name="Tests">
       <File Name="VectorTestSuite.cpp"/>
+      <File Name="AllocatorMock.h"/>
+      <File Name="RandomAccessIteratorTestSuite.cpp"/>
     </VirtualDirectory>
+    <File Name="RandomAccessIterator.h"/>
   </VirtualDirectory>
   <Dependencies Name="Debug"/>
   <Dependencies Name="Release"/>
