@@ -19,8 +19,18 @@ public:
     using reverse_iterator = std::reverse_iterator<iterator>;
     using const_reverse_iterator = std::reverse_iterator<const_iterator>;
     
-    Vector():allocator(allocator){}
-    explicit Vector(const Allocator& allocator):allocator(allocator){}
+    Vector():allocator(allocator_type()){}
+    explicit Vector(const allocator_type& alloc):allocator(alloc){}
+    explicit Vector(size_type count,
+                    const allocator_type& alloc = allocator_type());
+    explicit Vector(size_type count, 
+                    const T& value,
+                    const allocator_type& alloc = allocator_type());
+    template<class InputIterator>
+    Vector(InputIterator first, 
+           InputIterator last,
+           const allocator_type& alloc = allocator_type());
+    Vector(const Vector& input);
 
     T& operator[](size_type position);
     const T& operator[](size_type position) const;
@@ -29,16 +39,54 @@ public:
     void push_back(T element);
     template <class... Args>
     void emplace_back(Args&&... args);
+    allocator_type get_allocator() const;
     
 private:    
     void resize();
+    void resizeWithZeroCapacity();
     void resize(size_type size);
 
     T* elements;
     size_type numberOfElements = 0;
     size_type actualCapacity = 0;
-    const Allocator& allocator;
+    allocator_type allocator;
 };
+
+template<class T, class Allocator>
+Vector<T, Allocator>::Vector(const Vector& input)
+{
+    allocator = std::allocator_traits<allocator_type>::select_on_container_copy_construction(input.get_allocator());
+}
+
+template<class T, class Allocator>
+Vector<T, Allocator>::Vector(size_type count,
+                             const allocator_type& alloc) :numberOfElements(count), allocator(alloc)
+{
+    resize(count);
+    for(size_type i = 0; i < numberOfElements; ++i)
+        allocator.construct(elements + i, T());
+}
+
+template<class T, class Allocator>
+Vector<T, Allocator>::Vector(size_type count, 
+                             const T& value,
+                             const allocator_type& alloc) :numberOfElements(count), allocator(alloc)
+{
+    resize(count);
+    for(size_type i = 0; i < numberOfElements; ++i)
+        allocator.construct(elements + i, value);
+}
+
+template<class T, class Allocator>
+template<class InputIterator>
+Vector<T, Allocator>::Vector(InputIterator first, 
+                             InputIterator last,
+                             const allocator_type& alloc) :allocator(alloc)
+{
+    numberOfElements = last - first;
+    resize(numberOfElements);
+    std::copy(first, last, elements);
+}
 
 template<class T, class Allocator>
 T& Vector<T, Allocator>::operator[](size_type position)
@@ -63,18 +111,27 @@ void Vector<T, Allocator>::resize()
 {
     if(actualCapacity == 0)
     {
-        actualCapacity = 1;
-        elements = new T[actualCapacity];
+        resizeWithZeroCapacity();
     }
     else resize(2 * actualCapacity);
+}
+template<class T, class Allocator>
+void Vector<T, Allocator>::resizeWithZeroCapacity()
+{
+    actualCapacity = 1;
+    elements = new T[actualCapacity];
 }
 
 template<class T, class Allocator>
 void Vector<T, Allocator>::resize(size_type size)
 {
-    size_type newCapacity = 2 * actualCapacity;
-    T* biggerArray = new T[newCapacity];
-    copy(elements, elements + numberOfElements, biggerArray);
+    if(actualCapacity == 0)
+    {
+        resizeWithZeroCapacity();
+    }
+    size_type newCapacity = size;
+    T* biggerArray = allocator.allocate(newCapacity);
+    std::copy(elements, elements + numberOfElements, biggerArray);
     elements = biggerArray;
     actualCapacity = newCapacity;
 }
@@ -91,6 +148,12 @@ void Vector<T, Allocator>::push_back(T element)
     if(actualCapacity <= numberOfElements)
         resize();
     elements[numberOfElements++] = element;
+}
+
+template<class T, class Allocator>
+typename Vector<T, Allocator>::allocator_type Vector<T, Allocator>::get_allocator() const
+{
+    return allocator;
 }
 
 template<class T, class Allocator>

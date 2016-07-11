@@ -6,8 +6,8 @@
     <File Name="Vector.hpp"/>
     <VirtualDirectory Name="Tests">
       <File Name="VectorTestSuite.cpp"/>
-      <File Name="AllocatorMock.h"/>
       <File Name="RandomAccessIteratorTestSuite.cpp"/>
+      <File Name="Allocator.h"/>
     </VirtualDirectory>
     <File Name="RandomAccessIterator.h"/>
   </VirtualDirectory>
@@ -28,7 +28,7 @@
         <IncludePath Value="."/>
       </Compiler>
       <Linker Options="" Required="yes">
-        <LibraryPath Value="~/Downloads/googletest-master"/>
+        <LibraryPath Value="~/Downloads/googletest-master/googletest"/>
         <Library Value="gtest"/>
       </Linker>
       <ResourceCompiler Options="" Required="no"/>

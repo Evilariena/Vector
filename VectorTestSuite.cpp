@@ -1,5 +1,5 @@
 #include <gtest/gtest.h>
-#include <AllocatorMock.h>
+#include <Allocator.h>
 #include "Vector.hpp"
 
 int main(int ac, char* av[])
@@ -7,11 +7,6 @@ int main(int ac, char* av[])
   testing::InitGoogleTest(&ac, av);
   return RUN_ALL_TESTS();
 }
-
-class TestingClassForVector
-{
-    
-};
 
 TEST(ObjectCostruction, defaultConstructor)
 {
@@ -22,11 +17,40 @@ TEST(ObjectCostruction, defaultConstructor)
 
 TEST(ObjectCostruction, defaultConstructorWithAllocator)
 {
-    Vector<int, Allocator<int>> vectorWithAllocator(Allocator<int>());
+    Vector<int, Allocator<int>> out(Allocator<int>());
 }
 
-TEST(ObjectCostruction, fillExplicitConstructor)
+template <class T>
+void checkVectorSizeAndCapcity(Vector<T>& out, int numberOfElements)
+{
+    ASSERT_EQ(out.size(), numberOfElements);
+    ASSERT_EQ(out.capacity(), numberOfElements);
+}
+
+TEST(ObjectCostruction, fillConstructor)
 {
     int numberOfElements = 10;
-    //Vector<bool> vectorConstructedWithNumberOfElements(numberOfElements);
+    Vector<int> out(numberOfElements);
+    checkVectorSizeAndCapcity(out, numberOfElements);
+    for(int i = 0; i < numberOfElements; ++i)
+    {
+        ASSERT_EQ(out[i], int());
+    }
+}
+
+TEST(ObjectCostruction, fillWithGivenValuesConstructor)
+{
+    int numberOfElements = 13;
+    double valueOfElements = 7;
+    Vector<double> out(numberOfElements, valueOfElements);
+    checkVectorSizeAndCapcity(out, numberOfElements);
+    for(int i = 0; i < numberOfElements; ++i)
+    {
+        ASSERT_EQ(out[i], valueOfElements);
+    }
+}
+
+TEST(ObjectCostruction, rangeConstructor)
+{
+    
 }
