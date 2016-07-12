@@ -61,39 +61,45 @@ private:
 
 template<class T, class Allocator>
 Vector<T, Allocator>::Vector(std::initializer_list<value_type> initializerList,
-                             const allocator_type& alloc) :numberOfElements(initializerList.size()), allocator(alloc)
+                             const allocator_type& alloc) :allocator(alloc)
 {
-    resize(numberOfElements);
-    for(size_type i = 0; i < numberOfElements; ++i)
+    int newNumberOfElemetns = initializerList.size();
+    resize(newNumberOfElemetns);
+    for(size_type i = 0; i < newNumberOfElemetns; ++i)
         allocator.construct(elements + i, *(initializerList.begin() + i));
+    numberOfElements = newNumberOfElemetns;
 }
 
 template<class T, class Allocator>
-Vector<T, Allocator>::Vector(const Vector& input) :numberOfElements(input.size())
+Vector<T, Allocator>::Vector(const Vector& input) 
 {
     allocator = std::allocator_traits<allocator_type>::select_on_container_copy_construction(input.get_allocator());
-    resize(numberOfElements);
-    for(size_type i = 0; i < numberOfElements; ++i)
+    int newNumberOfElemetns = input.size();
+    resize(newNumberOfElemetns);
+    for(size_type i = 0; i < newNumberOfElemetns; ++i)
         allocator.construct(elements + i, input[i]);
+    numberOfElements = newNumberOfElemetns;
 }
 
 template<class T, class Allocator>
 Vector<T, Allocator>::Vector(size_type count,
-                             const allocator_type& alloc) :numberOfElements(count), allocator(alloc)
+                             const allocator_type& alloc) :allocator(alloc)
 {
     resize(count);
-    for(size_type i = 0; i < numberOfElements; ++i)
+    for(size_type i = 0; i < count; ++i)
         new (elements + i) T();
+    numberOfElements = count;
 }
 
 template<class T, class Allocator>
 Vector<T, Allocator>::Vector(size_type count, 
                              const T& value,
-                             const allocator_type& alloc) :numberOfElements(count), allocator(alloc)
+                             const allocator_type& alloc) :allocator(alloc)
 {
     resize(count);
-    for(size_type i = 0; i < numberOfElements; ++i)
+    for(size_type i = 0; i < count; ++i)
         allocator.construct(elements + i, value);
+    numberOfElements = count;
 }
 
 template<class T, class Allocator>

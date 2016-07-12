@@ -99,16 +99,16 @@ TEST(ObjectCostruction, copyConstructor)
 {
     Vector<int> numbers = {3, 4, 5, 6, 2, 91, 113};
     Vector<int> out(numbers);
-//    checkVectorSizeAndCapcity(out, numbers.size());
-//    for(int i = 0; i < numbers.size(); ++i)
-//    {
-//        ASSERT_EQ(out[i], numbers[i]);
-//    }
+    checkVectorSizeAndCapcity(out, numbers.size());
+    for(int i = 0; i < numbers.size(); ++i)
+    {
+        ASSERT_EQ(out[i], numbers[i]);
+    }
 }
 
 //TEST(ObjectCostruction, copyConstructorVitchAddingAllocator)
 //{
-//    std::string str = "lambada";
+//    Vector<char> str = {'a', 'k', 'u', 'k', 'u'};
 //    Vector<char, AddingAllocator<char>> out(str, AddingAllocator<char>());
 //    for(int i = 0; i < str.size(); ++i)
 //    {
