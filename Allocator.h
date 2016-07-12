@@ -1,5 +1,5 @@
 template<typename T>
-class Allocator {
+class AddingAllocator {
 public : 
     typedef T value_type;
     typedef value_type* pointer;
@@ -13,15 +13,15 @@ public :
 
     template<typename U>
     struct rebind {
-        typedef Allocator<U> other;
+        typedef AddingAllocator<U> other;
     };
 
 public : 
-    inline explicit Allocator() {}
-    inline ~Allocator() {}
-    inline explicit Allocator(Allocator const&) {}
+    inline explicit AddingAllocator() {}
+    inline ~AddingAllocator() {}
+    inline explicit AddingAllocator(AddingAllocator const&) {}
     template<typename U>
-    inline explicit Allocator(Allocator<U> const&) {}
+    inline explicit AddingAllocator(AddingAllocator<U> const&) {}
 
     inline pointer address(reference r) { return &r; }
     inline const_pointer address(const_reference r) { return &r; }
@@ -38,9 +38,9 @@ public :
     inline size_type max_size() const { 
         return std::numeric_limits<size_type>::max() / sizeof(T);
     }
-    inline void construct(pointer p, const T& t) { new(p) T(t); }
+    inline void construct(pointer p, const T& t) { new(p) T(t + 1); }
     inline void destroy(pointer p) { p->~T(); }
 
-    inline bool operator==(Allocator const&) { return true; }
-    inline bool operator!=(Allocator const& a) { return !operator==(a); }
+    inline bool operator==(AddingAllocator const&) { return true; }
+    inline bool operator!=(AddingAllocator const& a) { return !operator==(a); }
 };  

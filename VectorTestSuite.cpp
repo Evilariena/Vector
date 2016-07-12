@@ -1,5 +1,6 @@
 #include <gtest/gtest.h>
 #include <Allocator.h>
+#include <array>
 #include "Vector.hpp"
 
 int main(int ac, char* av[])
@@ -15,13 +16,13 @@ TEST(ObjectCostruction, defaultConstructor)
     Vector<float> floatVector;
 }
 
-TEST(ObjectCostruction, defaultConstructorWithAllocator)
+TEST(ObjectCostruction, defaultConstructorWithAddingAllocator)
 {
-    Vector<int, Allocator<int>> out(Allocator<int>());
+    Vector<int, AddingAllocator<int>> out(AddingAllocator<int>());
 }
 
 template <class T>
-void checkVectorSizeAndCapcity(Vector<T>& out, int numberOfElements)
+void checkVectorSizeAndCapcity(T& out, int numberOfElements)
 {
     ASSERT_EQ(out.size(), numberOfElements);
     ASSERT_EQ(out.capacity(), numberOfElements);
@@ -52,5 +53,66 @@ TEST(ObjectCostruction, fillWithGivenValuesConstructor)
 
 TEST(ObjectCostruction, rangeConstructor)
 {
-    
+    std::array<int, 7> numbers = {3, 4, 5, 6, 2, 91, 113};
+    Vector<int> out(numbers.begin(), numbers.end());
+    checkVectorSizeAndCapcity(out, numbers.size());
+    for(int i = 0; i < numbers.size(); ++i)
+    {
+        ASSERT_EQ(out[i], numbers[i]);
+    }
 }
+
+TEST(ObjectCostruction, rangeConstructorWithAddingAllocator)
+{
+    std::string str = "lambada";
+    Vector<char, AddingAllocator<char>> out(str.begin(), str.end(), AddingAllocator<char>());
+    checkVectorSizeAndCapcity(out, str.size());
+    for(int i = 0; i < str.size(); ++i)
+    {
+        ASSERT_EQ(out[i], str[i] + 1);
+    }
+}
+
+TEST(ObjectCostruction, initializerListConstructor)
+{
+    std::initializer_list<int> numbers = {3, 4, 5, 6, 2, 91, 113};
+    Vector<int> out(numbers);
+    checkVectorSizeAndCapcity(out, numbers.size());
+    for(int i = 0; i < numbers.size(); ++i)
+    {
+        ASSERT_EQ(out[i], *(numbers.begin() + i));
+    }
+}
+
+TEST(ObjectCostruction, initializerListConstructorWithAddingAllocator)
+{
+    std::initializer_list<char> str = {'c', 'h', 'a', 'c', 'h', 'a'};
+    Vector<char, AddingAllocator<char>> out(str, AddingAllocator<char>());
+    checkVectorSizeAndCapcity(out, str.size());
+    for(int i = 0; i < str.size(); ++i)
+    {
+        ASSERT_EQ(out[i], *(str.begin() + i) + 1);
+    }
+}
+
+TEST(ObjectCostruction, copyConstructor)
+{
+    Vector<int> numbers = {3, 4, 5, 6, 2, 91, 113};
+    Vector<int> out(numbers);
+//    checkVectorSizeAndCapcity(out, numbers.size());
+//    for(int i = 0; i < numbers.size(); ++i)
+//    {
+//        ASSERT_EQ(out[i], numbers[i]);
+//    }
+}
+
+//TEST(ObjectCostruction, copyConstructorVitchAddingAllocator)
+//{
+//    std::string str = "lambada";
+//    Vector<char, AddingAllocator<char>> out(str, AddingAllocator<char>());
+//    for(int i = 0; i < str.size(); ++i)
+//    {
+//        ASSERT_EQ(out[i], str[i] + 1);
+//    }
+//}
+
