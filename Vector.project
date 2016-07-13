@@ -7,7 +7,7 @@
     <VirtualDirectory Name="Tests">
       <File Name="VectorTestSuite.cpp"/>
       <File Name="RandomAccessIteratorTestSuite.cpp"/>
-      <File Name="Allocator.h"/>
+      <File Name="HelperClasses.h"/>
     </VirtualDirectory>
     <File Name="RandomAccessIterator.h"/>
   </VirtualDirectory>
@@ -28,8 +28,7 @@
         <IncludePath Value="."/>
       </Compiler>
       <Linker Options="" Required="yes">
-        <LibraryPath Value="~/Downloads/googletest-master/googletest"/>
-        <Library Value="gtest"/>
+        <Library Value="libgtest"/>
       </Linker>
       <ResourceCompiler Options="" Required="no"/>
       <General OutputFile="$(IntermediateDirectory)/$(ProjectName)" IntermediateDirectory="./Debug" Command="./$(ProjectName)" CommandArguments="" UseSeparateDebugArgs="no" DebugArguments="" WorkingDirectory="$(IntermediateDirectory)" PauseExecWhenProcTerminates="yes" IsGUIProgram="no" IsEnabled="yes"/>

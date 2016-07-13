@@ -1,7 +1,7 @@
-Debug/VectorTestSuite.cpp.o: VectorTestSuite.cpp Allocator.h Vector.hpp \
- RandomAccessIterator.h
+Debug/VectorTestSuite.cpp.o: VectorTestSuite.cpp HelperClasses.h \
+ Vector.hpp RandomAccessIterator.h
 
-Allocator.h:
+HelperClasses.h:
 
 Vector.hpp:
 

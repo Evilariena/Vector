@@ -1,5 +1,6 @@
 #include <gtest/gtest.h>
-#include <Allocator.h>
+#include <gmock/gmock.h>
+#include <HelperClasses.h>
 #include <array>
 #include "Vector.hpp"
 
@@ -87,7 +88,7 @@ TEST(ObjectCostruction, initializerListConstructor)
 TEST(ObjectCostruction, initializerListConstructorWithAddingAllocator)
 {
     std::initializer_list<char> str = {'c', 'h', 'a', 'c', 'h', 'a'};
-    Vector<char, AddingAllocator<char>> out(str, AddingAllocator<char>());
+    Vector<char, AddingAllocator<char>> out(std::move(str), AddingAllocator<char>());
     checkVectorSizeAndCapcity(out, str.size());
     for(int i = 0; i < str.size(); ++i)
     {
@@ -100,19 +101,48 @@ TEST(ObjectCostruction, copyConstructor)
     Vector<int> numbers = {3, 4, 5, 6, 2, 91, 113};
     Vector<int> out(numbers);
     checkVectorSizeAndCapcity(out, numbers.size());
+    ASSERT_TRUE(out == numbers);
+}
+
+TEST(ObjectCostruction, copyConstructorVitchAddingAllocator)
+{
+    Vector<char, AddingAllocator<char>> str = {'a', 'k', 'u', 'k', 'u'};
+    Vector<char, AddingAllocator<char>> out(str, AddingAllocator<char>());
+    checkVectorSizeAndCapcity(out, str.size());
+    for(int i = 0; i < str.size(); ++i)
+    {
+        ASSERT_EQ(out[i], str[i] + 1);
+    }
+}
+
+TEST(ObjectCostruction, moveConstructor)
+{
+    Vector<int> numbers = {3, 4, 5, 6, 2, 91, 113};
+    Vector<int> out(std::move(numbers));
+    checkVectorSizeAndCapcity(out, numbers.size());
     for(int i = 0; i < numbers.size(); ++i)
     {
         ASSERT_EQ(out[i], numbers[i]);
     }
 }
 
-//TEST(ObjectCostruction, copyConstructorVitchAddingAllocator)
-//{
-//    Vector<char> str = {'a', 'k', 'u', 'k', 'u'};
-//    Vector<char, AddingAllocator<char>> out(str, AddingAllocator<char>());
-//    for(int i = 0; i < str.size(); ++i)
-//    {
-//        ASSERT_EQ(out[i], str[i] + 1);
-//    }
-//}
 
+TEST(ObjectCostruction, moveConstructorVitchAddingAllocator)
+{
+    Vector<char, AddingAllocator<char>> str = {'a', 'k', 'u', 'k', 'u'};
+    Vector<char, AddingAllocator<char>> out(std::move(str), AddingAllocator<char>());
+    checkVectorSizeAndCapcity(out, str.size());
+    for(int i = 0; i < str.size(); ++i)
+    {
+        ASSERT_EQ(out[i], str[i]);
+    }
+}
+
+
+TEST(AssignmentOperator, copyAssigment)
+{
+    Vector<Cat> cats = {Cat("Red"), Cat("Jhon"), Cat("Anubis")};
+    Vector<Cat> catsToBeOverrided = {Cat("Fluffy"), Cat("Silly")};
+    catsToBeOverrided = cats;
+    ASSERT_TRUE(cats == catsToBeOverrided);
+}

@@ -13,7 +13,7 @@ CurrentFileName        :=
 CurrentFilePath        :=
 CurrentFileFullPath    :=
 User                   :=Monika
-Date                   :=12/07/16
+Date                   :=13/07/16
 CodeLitePath           :="/home/monika/.codelite"
 LinkerName             :=/usr/bin/g++
 SharedObjectLinkerName :=/usr/bin/g++ -shared -fPIC
@@ -40,8 +40,8 @@ IncludePath            :=  $(IncludeSwitch). $(IncludeSwitch).
 IncludePCH             := 
 RcIncludePath          := 
 Libs                   := $(LibrarySwitch)gtest 
-ArLibs                 :=  "gtest" 
-LibPath                := $(LibraryPathSwitch). $(LibraryPathSwitch)~/Downloads/googletest-master/googletest 
+ArLibs                 :=  "libgtest" 
+LibPath                := $(LibraryPathSwitch). 
 
 ##
 ## Common variables
