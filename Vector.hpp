@@ -3,6 +3,8 @@
 #include <RandomAccessIterator.h>
 #include <iostream>
 
+
+class resize;
 template<class T, class Allocator = std::allocator<T>>
 class Vector
 {
@@ -62,15 +64,37 @@ public:
     allocator_type get_allocator() const;
     
 private:    
-    void resize();
+    void resizeWithDoubledCapacity();
     void resizeWithZeroCapacity();
     void resize(size_type size);
+    void resizeAndCopyElements(const Vector<T, Allocator>& input);
+    void resizeAndMoveElements(Vector<T, Allocator>& input);
     
     value_type* elements;
     size_type numberOfElements = 0;
     size_type actualCapacity = 0;
     allocator_type allocator;
 };
+
+template<class T, class Allocator>
+void Vector<T, Allocator>::resizeAndCopyElements(const Vector<T, Allocator>& input)
+{
+    size_type newNumberOfElemetns = input.size();
+    resize(newNumberOfElemetns);
+    for(size_type i = 0; i < newNumberOfElemetns; ++i)
+        allocator.construct(elements + i, input[i]); 
+    numberOfElements = newNumberOfElemetns;
+}
+
+template<class T, class Allocator>
+void Vector<T, Allocator>::resizeAndMoveElements(Vector<T, Allocator>& input)
+{
+    size_type newNumberOfElemetns = input.size();
+    resize(newNumberOfElemetns);
+    for(size_type i = 0; i < newNumberOfElemetns; ++i)
+        elements[i] = std::move(input[i]);
+    numberOfElements = newNumberOfElemetns;
+}
 
 template<class T, class Allocator>
 void Vector<T, Allocator>::clear()
@@ -91,12 +115,50 @@ void Vector<T, Allocator>::clear()
 template<class T, class Allocator>
 Vector<T, Allocator>& Vector<T, Allocator>::operator=(const Vector& input)
 {
-    clear();
-    int newNumberOfElemetns = input.size();
-    resize(newNumberOfElemetns);
-    for(size_type i = 0; i < newNumberOfElemetns; ++i)
-        allocator.construct(elements + i, input[i]);
-    numberOfElements = newNumberOfElemetns;
+    auto inputAllocator = input.get_allocator();
+    if(__gnu_cxx::__alloc_traits<allocator_type>::_S_propagate_on_copy_assign())
+    {
+        if(allocator == inputAllocator)
+        {
+            allocator = inputAllocator;
+            clear();
+        }
+        else
+        {
+            clear();
+            allocator = inputAllocator;
+        }
+    }
+    else
+        clear();
+    resizeAndCopyElements(input);
+    return *this;
+}
+
+template<class T, class Allocator>
+Vector<T, Allocator>& Vector<T, Allocator>::operator=(Vector&& input)
+{
+    auto inputAllocator = input.get_allocator();
+    if(__gnu_cxx::__alloc_traits<allocator_type>::_S_propagate_on_move_assign())
+    {
+        if(allocator == inputAllocator)
+        {
+            allocator = inputAllocator;
+            if(numberOfElements > input.size())
+            {
+                for(std::size_t i = input.size(); i < numberOfElements; ++i)
+                    allocator.destroy(elements + i);
+            }
+        }
+        else
+        {
+            clear();
+            allocator = inputAllocator;
+        }
+    }
+    else
+        clear();
+    resizeAndMoveElements(input);
     return *this;
 }
 
@@ -110,7 +172,7 @@ template<class T, class Allocator>
 Vector<T, Allocator>::Vector(std::initializer_list<value_type> input,
                              const allocator_type& alloc) :allocator(alloc)
 {
-    int newNumberOfElemetns = input.size();
+    std::size_t newNumberOfElemetns = input.size();
     resize(newNumberOfElemetns);
     for(size_type i = 0; i < newNumberOfElemetns; ++i)
         allocator.construct(elements + i, *(input.begin() + i));
@@ -121,44 +183,28 @@ template<class T, class Allocator>
 Vector<T, Allocator>::Vector(const Vector& input) 
 {
     allocator = std::allocator_traits<allocator_type>::select_on_container_copy_construction(input.get_allocator());
-    int newNumberOfElemetns = input.size();
-    resize(newNumberOfElemetns);
-    for(size_type i = 0; i < newNumberOfElemetns; ++i)
-        allocator.construct(elements + i, input[i]);
-    numberOfElements = newNumberOfElemetns;
+    resizeAndCopyElements(input);
 }
 
 template<class T, class Allocator>
 Vector<T, Allocator>::Vector(const Vector& input,
                              const allocator_type& alloc) :allocator(alloc)
 {
-    int newNumberOfElemetns = input.size();
-    resize(newNumberOfElemetns);
-    for(size_type i = 0; i < newNumberOfElemetns; ++i)
-        allocator.construct(elements + i, input[i]);
-    numberOfElements = newNumberOfElemetns;
+    resizeAndCopyElements(input);
 }
 
 template<class T, class Allocator>
 Vector<T, Allocator>::Vector(Vector&& input) 
 {
     allocator = std::allocator_traits<allocator_type>::select_on_container_copy_construction(input.get_allocator());
-    int newNumberOfElemetns = input.size();
-    resize(newNumberOfElemetns);
-    for(size_type i = 0; i < newNumberOfElemetns; ++i)
-        elements[i] = std::move(input[i]);
-    numberOfElements = newNumberOfElemetns;
+    resizeAndMoveElements(input);
 }
 
 template<class T, class Allocator>
 Vector<T, Allocator>::Vector(Vector&& input,
                              const allocator_type& alloc) :allocator(alloc)
 {
-    int newNumberOfElemetns = input.size();
-    resize(newNumberOfElemetns);
-    for(size_type i = 0; i < newNumberOfElemetns; ++i)
-         elements[i] = std::move(input[i]);
-    numberOfElements = newNumberOfElemetns;
+    resizeAndMoveElements(input);
 }
 
 template<class T, class Allocator>
@@ -214,7 +260,7 @@ typename Vector<T, Allocator>::size_type Vector<T, Allocator>::size() const
 }
 
 template<class T, class Allocator>
-void Vector<T, Allocator>::resize()
+void Vector<T, Allocator>::resizeWithDoubledCapacity()
 {
     if(actualCapacity == 0)
     {
@@ -276,7 +322,7 @@ bool operator==(const Vector<T, Alloc> &lhs,
 {
     if(lhs.size() != rhs.size())
         return false;
-    for(int i = 0; i < lhs.size(); ++i)
+    for(std::size_t i = 0; i < lhs.size(); ++i)
     {
         if(!(lhs[i] == rhs[i]))
             return false;
