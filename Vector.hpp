@@ -1,6 +1,5 @@
 #pragma once
 
-#include <RandomAccessIterator.h>
 #include <iostream>
 
 
@@ -9,6 +8,10 @@ template<class T, class Allocator = std::allocator<T>>
 class Vector
 {
 public:
+    template <class U>
+    class RandomAccessIterator : public std::iterator<std::random_access_iterator_tag, U, std::size_t, const U*, U&>
+    {};
+
     using value_type = T;
     using allocator_type = Allocator;
     using size_type = std::size_t;
@@ -22,7 +25,7 @@ public:
     using reverse_iterator = std::reverse_iterator<iterator>;
     using const_reverse_iterator = std::reverse_iterator<const_iterator>;
     
-    Vector():allocator(allocator_type()){}
+    Vector(): Vector(Allocator()){}
     explicit Vector(const allocator_type& alloc):allocator(alloc){}
     
     explicit Vector(size_type count,
@@ -49,19 +52,19 @@ public:
     ~Vector();
     
     Vector& operator=(const Vector& input);
-    Vector& operator=(Vector&& input);
-    Vector& operator=(std::initializer_list<value_type> input);
+    Vector& operator=(Vector&& input); 
+    Vector& operator=(std::initializer_list<value_type> input); 
 
-    value_type& operator[](size_type position);
-    const value_type& operator[](size_type position) const;
+    value_type& operator[](size_type position); 
+    const value_type& operator[](size_type position) const; 
     
-    size_type size() const;
+    size_type size() const; 
     size_type capacity();
-    void push_back(T element);
-    void clear();
+    void push_back(T element); 
+    void clear(); 
     template <class... Args>
-    void emplace_back(Args&&... args);
-    allocator_type get_allocator() const;
+    void emplace_back(Args&&... args); 
+    allocator_type get_allocator() const; 
     
 private:    
     void resizeWithDoubledCapacity();
@@ -69,6 +72,8 @@ private:
     void resize(size_type size);
     void resizeAndCopyElements(const Vector<T, Allocator>& input);
     void resizeAndMoveElements(Vector<T, Allocator>& input);
+    void destoryAllElements();
+    void copyElemetnsFromInizlizerList(std::initializer_list<value_type> input);
     
     value_type* elements;
     size_type numberOfElements = 0;
@@ -90,14 +95,21 @@ template<class T, class Allocator>
 void Vector<T, Allocator>::resizeAndMoveElements(Vector<T, Allocator>& input)
 {
     size_type newNumberOfElemetns = input.size();
-    resize(newNumberOfElemetns);
+    destoryAllElements();
+    if(newNumberOfElemetns > actualCapacity)
+    {
+        resize(newNumberOfElemetns);
+    }
+        
     for(size_type i = 0; i < newNumberOfElemetns; ++i)
+    {
         elements[i] = std::move(input[i]);
+    }
     numberOfElements = newNumberOfElemetns;
 }
 
 template<class T, class Allocator>
-void Vector<T, Allocator>::clear()
+void Vector<T, Allocator>::destoryAllElements()
 {
     if(!std::is_trivial<T>::value && numberOfElements)
     {
@@ -105,10 +117,15 @@ void Vector<T, Allocator>::clear()
         {
             allocator.destroy(elements + i);
         }
-    }
+    } 
+    numberOfElements = 0;   
+}
+template<class T, class Allocator>
+void Vector<T, Allocator>::clear()
+{
+    destoryAllElements();
     if(actualCapacity)
         allocator.deallocate(elements, actualCapacity);
-    numberOfElements = 0;
     actualCapacity = 0;
 }
 
@@ -144,21 +161,36 @@ Vector<T, Allocator>& Vector<T, Allocator>::operator=(Vector&& input)
         if(allocator == inputAllocator)
         {
             allocator = inputAllocator;
-            if(numberOfElements > input.size())
-            {
-                for(std::size_t i = input.size(); i < numberOfElements; ++i)
-                    allocator.destroy(elements + i);
-            }
+            resizeAndMoveElements(input);
+
         }
         else
         {
-            clear();
+            resizeAndMoveElements(input);
             allocator = inputAllocator;
         }
     }
     else
-        clear();
-    resizeAndMoveElements(input);
+        resizeAndMoveElements(input);
+    input.numberOfElements = 0;
+    return *this;
+}
+
+template<class T, class Allocator>
+void Vector<T, Allocator>::copyElemetnsFromInizlizerList(std::initializer_list<T> input)
+{
+    std::size_t newNumberOfElemetns = input.size();
+    resize(newNumberOfElemetns);
+    for(size_type i = 0; i < newNumberOfElemetns; ++i)
+        allocator.construct(elements + i, *(input.begin() + i));
+    numberOfElements = newNumberOfElemetns;
+}
+
+template<class T, class Allocator>
+Vector<T, Allocator>& Vector<T, Allocator>::operator=(std::initializer_list<T> input)
+{
+    clear();
+    copyElemetnsFromInizlizerList(input);
     return *this;
 }
 
@@ -172,11 +204,7 @@ template<class T, class Allocator>
 Vector<T, Allocator>::Vector(std::initializer_list<value_type> input,
                              const allocator_type& alloc) :allocator(alloc)
 {
-    std::size_t newNumberOfElemetns = input.size();
-    resize(newNumberOfElemetns);
-    for(size_type i = 0; i < newNumberOfElemetns; ++i)
-        allocator.construct(elements + i, *(input.begin() + i));
-    numberOfElements = newNumberOfElemetns;
+    copyElemetnsFromInizlizerList(input);
 }
 
 template<class T, class Allocator>
@@ -272,7 +300,7 @@ template<class T, class Allocator>
 void Vector<T, Allocator>::resizeWithZeroCapacity()
 {
     actualCapacity = 1;
-    allocator.allocate(actualCapacity);
+    elements = allocator.allocate(actualCapacity);
 }
 
 template<class T, class Allocator>
@@ -284,7 +312,7 @@ void Vector<T, Allocator>::resize(size_type size)
     }
     
     T* biggerArray = allocator.allocate(size);    
-    std::copy(elements, elements + numberOfElements, biggerArray);
+    std::move(elements, elements + numberOfElements, biggerArray);
     elements = biggerArray;    
     actualCapacity = size;
 }
@@ -299,7 +327,7 @@ template<class T, class Allocator>
 void Vector<T, Allocator>::push_back(T element)
 {
     if(actualCapacity <= numberOfElements)
-        resize();
+        resizeWithDoubledCapacity();
     allocator.construct(elements + numberOfElements++, element);
 }
 
@@ -313,7 +341,7 @@ template<class T, class Allocator>
 template <class... Args>
 void Vector<T, Allocator>::emplace_back(Args&&... args)
 {
-    push_back(Allocator(std::forward<T>(args)...));
+    push_back(T(std::forward<T>(args)...));
 }
 
 template<class T, class Alloc>

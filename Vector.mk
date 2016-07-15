@@ -13,7 +13,7 @@ CurrentFileName        :=
 CurrentFilePath        :=
 CurrentFileFullPath    :=
 User                   :=Monika
-Date                   :=14/07/16
+Date                   :=15/07/16
 CodeLitePath           :="/home/monika/.codelite"
 LinkerName             :=/usr/bin/g++
 SharedObjectLinkerName :=/usr/bin/g++ -shared -fPIC
@@ -60,7 +60,7 @@ AS       := /usr/bin/as
 ## User defined environment variables
 ##
 CodeLiteDir:=/usr/share/codelite
-Objects0=$(IntermediateDirectory)/VectorTestSuite.cpp$(ObjectSuffix) $(IntermediateDirectory)/RandomAccessIteratorTestSuite.cpp$(ObjectSuffix) 
+Objects0=$(IntermediateDirectory)/VectorTestSuite.cpp$(ObjectSuffix) 
 
 
 
@@ -98,14 +98,6 @@ $(IntermediateDirectory)/VectorTestSuite.cpp$(DependSuffix): VectorTestSuite.cpp
 
 $(IntermediateDirectory)/VectorTestSuite.cpp$(PreprocessSuffix): VectorTestSuite.cpp
 	$(CXX) $(CXXFLAGS) $(IncludePCH) $(IncludePath) $(PreprocessOnlySwitch) $(OutputSwitch) $(IntermediateDirectory)/VectorTestSuite.cpp$(PreprocessSuffix) "VectorTestSuite.cpp"
-
-$(IntermediateDirectory)/RandomAccessIteratorTestSuite.cpp$(ObjectSuffix): RandomAccessIteratorTestSuite.cpp $(IntermediateDirectory)/RandomAccessIteratorTestSuite.cpp$(DependSuffix)
-	$(CXX) $(IncludePCH) $(SourceSwitch) "/home/monika/Documents/workspace/Vector/RandomAccessIteratorTestSuite.cpp" $(CXXFLAGS) $(ObjectSwitch)$(IntermediateDirectory)/RandomAccessIteratorTestSuite.cpp$(ObjectSuffix) $(IncludePath)
-$(IntermediateDirectory)/RandomAccessIteratorTestSuite.cpp$(DependSuffix): RandomAccessIteratorTestSuite.cpp
-	@$(CXX) $(CXXFLAGS) $(IncludePCH) $(IncludePath) -MG -MP -MT$(IntermediateDirectory)/RandomAccessIteratorTestSuite.cpp$(ObjectSuffix) -MF$(IntermediateDirectory)/RandomAccessIteratorTestSuite.cpp$(DependSuffix) -MM "RandomAccessIteratorTestSuite.cpp"
-
-$(IntermediateDirectory)/RandomAccessIteratorTestSuite.cpp$(PreprocessSuffix): RandomAccessIteratorTestSuite.cpp
-	$(CXX) $(CXXFLAGS) $(IncludePCH) $(IncludePath) $(PreprocessOnlySwitch) $(OutputSwitch) $(IntermediateDirectory)/RandomAccessIteratorTestSuite.cpp$(PreprocessSuffix) "RandomAccessIteratorTestSuite.cpp"
 
 
 -include $(IntermediateDirectory)/*$(DependSuffix)

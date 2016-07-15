@@ -1,6 +1,5 @@
 #include <gtest/gtest.h>
 #include <gmock/gmock.h>
-#include <HelperClasses.h>
 #include <array>
 #include <scoped_allocator>
 #include "Vector.hpp"
@@ -18,9 +17,9 @@ TEST(ObjectCostruction, defaultConstructor)
     Vector<float> floatVector;
 }
 
-TEST(ObjectCostruction, defaultConstructorWithAddingAllocator)
+TEST(ObjectCostruction, defaultConstructorWithGivenAllocator)
 {
-    Vector<int, AddingAllocator<int>> out(AddingAllocator<int>());
+    Vector<int, std::allocator<int>> out(std::allocator<int>());
 }
 
 template <class T>
@@ -64,14 +63,14 @@ TEST(ObjectCostruction, rangeConstructor)
     }
 }
 
-TEST(ObjectCostruction, rangeConstructorWithAddingAllocator)
+TEST(ObjectCostruction, rangeConstructorWithGivenAllocator)
 {
     std::string str = "lambada";
-    Vector<char, AddingAllocator<char>> out(str.begin(), str.end(), AddingAllocator<char>());
+    Vector<char, std::allocator<char>> out(str.begin(), str.end(), std::allocator<char>());
     checkVectorSizeAndCapcity(out, str.size());
     for(std::size_t i = 0; i < str.size(); ++i)
     {
-        ASSERT_EQ(out[i], str[i] + 1);
+        ASSERT_EQ(out[i], str[i]);
     }
 }
 
@@ -86,14 +85,14 @@ TEST(ObjectCostruction, initializerListConstructor)
     }
 }
 
-TEST(ObjectCostruction, initializerListConstructorWithAddingAllocator)
+TEST(ObjectCostruction, initializerListConstructorWithGivenAllocator)
 {
     std::initializer_list<char> str = {'c', 'h', 'a', 'c', 'h', 'a'};
-    Vector<char, AddingAllocator<char>> out(std::move(str), AddingAllocator<char>());
+    Vector<char, std::allocator<char>> out(std::move(str), std::allocator<char>());
     checkVectorSizeAndCapcity(out, str.size());
     for(std::size_t i = 0; i < str.size(); ++i)
     {
-        ASSERT_EQ(out[i], *(str.begin() + i) + 1);
+        ASSERT_EQ(out[i], *(str.begin() + i));
     }
 }
 
@@ -105,14 +104,14 @@ TEST(ObjectCostruction, copyConstructor)
     ASSERT_TRUE(out == numbers);
 }
 
-TEST(ObjectCostruction, copyConstructorVitchAddingAllocator)
+TEST(ObjectCostruction, copyConstructorVitchGivenAllocator)
 {
-    Vector<char, AddingAllocator<char>> str = {'a', 'k', 'u', 'k', 'u'};
-    Vector<char, AddingAllocator<char>> out(str, AddingAllocator<char>());
+    Vector<char, std::allocator<char>> str = {'a', 'k', 'u', 'k', 'u'};
+    Vector<char, std::allocator<char>> out(str, std::allocator<char>());
     checkVectorSizeAndCapcity(out, str.size());
     for(std::size_t i = 0; i < str.size(); ++i)
     {
-        ASSERT_EQ(out[i], str[i] + 1);
+        ASSERT_EQ(out[i], str[i]);
     }
 }
 
@@ -128,15 +127,68 @@ TEST(ObjectCostruction, moveConstructor)
 }
 
 
-TEST(ObjectCostruction, moveConstructorVitchAddingAllocator)
+TEST(ObjectCostruction, moveConstructorVitchGivenAllocator)
 {
-    Vector<char, AddingAllocator<char>> str = {'a', 'k', 'u', 'k', 'u'};
-    Vector<char, AddingAllocator<char>> out(std::move(str), AddingAllocator<char>());
+    Vector<char, std::allocator<char>> str = {'a', 'k', 'u', 'k', 'u'};
+    Vector<char, std::allocator<char>> out(std::move(str), std::allocator<char>());
     checkVectorSizeAndCapcity(out, str.size());
     for(std::size_t i = 0; i < str.size(); ++i)
     {
         ASSERT_EQ(out[i], str[i]);
     }
+}
+
+TEST(Allocator, getDefaultAllocator)
+{
+    Vector<int> vec;
+    ASSERT_EQ(vec.get_allocator(), std::allocator<int>());
+}
+
+TEST(Allocator, getGivenAllocator)
+{
+    const auto& alloc = std::allocator<int>();
+    Vector<int, std::allocator<int>> vec(alloc);
+    ASSERT_TRUE(vec.get_allocator() == std::allocator<int>());
+}
+
+struct Cat
+{
+    using value_type = Cat;
+    Cat(std::string name) :name(name) {}
+    Cat(const Cat& cat): legsAmoutn(cat.legsAmoutn), name(cat.name) {}
+    Cat(Cat&& cat): legsAmoutn(std::move(cat.legsAmoutn)), name(std::move(cat.name)) {}
+    ~Cat(){}
+    
+    Cat& operator=(Cat& cat)
+    {
+        name = cat.name;
+        legsAmoutn = cat.legsAmoutn;
+        return *this;
+    }
+    
+    Cat& operator=(Cat&& cat)
+    {
+        name = std::move(cat.name);
+        legsAmoutn = std::move(cat.legsAmoutn);
+        return *this;
+    }
+    
+    int legsAmoutn = 4;
+    std::string name;
+};
+
+bool operator==(const Cat& lhs, const Cat& rhs)
+{
+    return lhs.legsAmoutn == rhs.legsAmoutn && lhs.name == rhs.name;
+}
+
+TEST(EmplaceBack, emplaceCat)
+{
+    Vector<Cat> emplacedCat;
+    std::string name = "Dog";
+    emplacedCat.emplace_back(name);
+    Vector<Cat> createdCat = {Cat(name)};
+    ASSERT_TRUE(emplacedCat == createdCat);
 }
 
 class VectorTestSuite : public ::testing::Test 
@@ -151,6 +203,42 @@ protected:
     Vector<int, std::allocator<int>> shortVectorWithAllocator;
 };
 
+TEST_F(VectorTestSuite, pushBackTrivialType)
+{
+    Vector<int> emptyVector;
+    for(std::size_t i = 0; i < longVectorWithAllocator.size(); ++i)
+    {
+        emptyVector.push_back(longVectorWithAllocator[i]);
+    }
+    
+    ASSERT_TRUE(emptyVector == longVectorWithAllocator);
+}
+
+TEST_F(VectorTestSuite, pushBackCustomType)
+{
+    Vector<Cat> emptyVector;
+    for(std::size_t i = 0; i < longVector.size(); ++i)
+    {
+        emptyVector.push_back(longVector[i]);
+    }
+    
+    ASSERT_TRUE(emptyVector == longVector);
+}
+
+TEST_F(VectorTestSuite, clearTrivialType)
+{
+    Vector<int> emptyVector;
+    longVectorWithAllocator.clear();
+    ASSERT_TRUE(emptyVector == longVectorWithAllocator);
+}
+
+TEST_F(VectorTestSuite, clearCustomType)
+{
+    Vector<Cat> emptyVector;
+    shortVector.clear();
+    ASSERT_TRUE(emptyVector == shortVector);
+}
+
 TEST_F(VectorTestSuite, copyAssigmentLongerToShorter)
 {
     shortVector = longVector;
@@ -163,16 +251,58 @@ TEST_F(VectorTestSuite, copyAssigmentShorterToLonger)
     ASSERT_TRUE(longVector == shortVector);
 }
 
+TEST_F(VectorTestSuite, copyAssigmentLongerToShorterTrivialType)
+{
+    shortVectorWithAllocator = longVectorWithAllocator;
+    ASSERT_TRUE(longVectorWithAllocator == shortVectorWithAllocator);
+}
+
+TEST_F(VectorTestSuite, copyAssigmentShorterToLongerTrivialType)
+{
+    longVectorWithAllocator = shortVectorWithAllocator;
+    ASSERT_TRUE(longVectorWithAllocator == shortVectorWithAllocator);
+}
+
 TEST_F(VectorTestSuite, moveAssigmentLongerToShorter)
 {
     auto copyOfLongVector(longVector);
     shortVector = std::move(longVector);
-//    ASSERT_TRUE(shortVector == copyOfLongVector);
+    ASSERT_TRUE(shortVector == copyOfLongVector);
+    ASSERT_EQ(longVector.size(), 0);
 }
 
 TEST_F(VectorTestSuite, moveAssigmentShorterToLonger)
 {
-//    auto copyOfShortVector(shortVector);
-//    longVector = std::move(shortVector);
-//    ASSERT_TRUE(longVector == copyOfShortVector);
+    auto copyOfShortVector(shortVector);
+    longVector = std::move(shortVector);
+    ASSERT_TRUE(longVector == copyOfShortVector);
+    ASSERT_EQ(shortVector.size(), 0);
+}
+
+TEST_F(VectorTestSuite, moveAssigmentLongerToShorterTrivialType)
+{
+    auto copyOfLongVector(longVectorWithAllocator);
+    shortVectorWithAllocator = std::move(longVectorWithAllocator);
+    ASSERT_TRUE(shortVectorWithAllocator == copyOfLongVector);
+    ASSERT_EQ(longVectorWithAllocator.size(), 0);
+}
+
+TEST_F(VectorTestSuite, moveAssigmentShorterToLongerTrivialType)
+{
+    auto copyOfShortVector(shortVectorWithAllocator);
+    longVectorWithAllocator = std::move(shortVectorWithAllocator);
+    ASSERT_TRUE(longVectorWithAllocator == copyOfShortVector);
+    ASSERT_EQ(shortVectorWithAllocator.size(), 0);
+}
+
+TEST_F(VectorTestSuite, assignFromInitializerList)
+{
+    shortVector = {Cat("Red"), Cat("Jhon"), Cat("Anubis")};
+    ASSERT_TRUE(shortVector == longVector);
+}
+
+TEST_F(VectorTestSuite, assignFromInitializerListTrivialType)
+{
+    longVectorWithAllocator = {13, 99};
+    ASSERT_TRUE(shortVectorWithAllocator == longVectorWithAllocator);
 }

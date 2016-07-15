@@ -1,8 +1,3 @@
-Debug/VectorTestSuite.cpp.o: VectorTestSuite.cpp HelperClasses.h \
- Vector.hpp RandomAccessIterator.h
-
-HelperClasses.h:
+Debug/VectorTestSuite.cpp.o: VectorTestSuite.cpp Vector.hpp
 
 Vector.hpp:
-
-RandomAccessIterator.h:

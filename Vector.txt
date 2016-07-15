@@ -1,1 +1,1 @@
-./Debug/VectorTestSuite.cpp.o ./Debug/RandomAccessIteratorTestSuite.cpp.o
+./Debug/VectorTestSuite.cpp.o
